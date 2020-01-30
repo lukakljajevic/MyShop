@@ -11,13 +11,13 @@ namespace MyShop.WebUI.Controllers
 {
     public class ProductManagerController : Controller
     {
-        private ProductRepository context;
-        private ProductCategoryRepository productCategories;
+        private InMemoryRepository<Product> context;
+        private InMemoryRepository<ProductCategory> productCategories;
 
         public ProductManagerController()
         {
-            context = new ProductRepository();
-            productCategories = new ProductCategoryRepository();
+            context = new InMemoryRepository<Product>();
+            productCategories = new InMemoryRepository<ProductCategory>();
         }
 
         public ActionResult Index()
@@ -38,8 +38,14 @@ namespace MyShop.WebUI.Controllers
         [HttpPost]
         public ActionResult Create(Product product)
         {
+
             if (!ModelState.IsValid)
-                return View(product);
+            {
+                ProductManagerViewModel viewModel = new ProductManagerViewModel();
+                viewModel.Product = product;
+                return View(viewModel);
+            }
+                
             context.Insert(product);
             context.Commit();
             return RedirectToAction("Index");
@@ -65,11 +71,11 @@ namespace MyShop.WebUI.Controllers
             if (!ModelState.IsValid)
                 return View(product);
 
+            productToEdit.Name = product.Name;
             productToEdit.Category = product.Category;
+            productToEdit.Price = product.Price;
             productToEdit.Description = product.Description;
             productToEdit.Image = product.Image;
-            productToEdit.Name = product.Name;
-            productToEdit.Price = product.Price;
 
             context.Commit();
             return RedirectToAction("Index");
