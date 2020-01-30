@@ -38,9 +38,9 @@ namespace MyShop.DataAccess.InMemory
                 throw new Exception("Product not found");
         }
 
-        public Product Find(string Id)
+        public Product Find(string id)
         {
-            var product = products.Find(p => p.Id == Id);
+            var product = products.Find(p => p.Id == id);
             if (product != null)
                 return product;
             throw new Exception("Product not found");
@@ -51,9 +51,9 @@ namespace MyShop.DataAccess.InMemory
             return products.AsQueryable();
         }
 
-        public void Delete(string Id)
+        public void Delete(string id)
         {
-            var productToRemove = products.Find(p => p.Id == Id);
+            var productToRemove = products.Find(p => p.Id == id);
             if (productToRemove != null)
                 products.Remove(productToRemove);
             else
