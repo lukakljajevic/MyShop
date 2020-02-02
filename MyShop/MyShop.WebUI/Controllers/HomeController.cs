@@ -11,21 +11,20 @@ namespace MyShop.WebUI.Controllers
 {
     public class HomeController : Controller
     {
-        private IRepository<Product> context;
-        private IRepository<ProductCategory> productCategories;
+        private IRepository<Product> Context;
+        private IRepository<ProductCategory> ProductCategories;
 
         public HomeController(IRepository<Product> productContext, IRepository<ProductCategory> productCategoriesContext)
         {
-            context = productContext;
-            productCategories = productCategoriesContext;
+            Context = productContext;
+            ProductCategories = productCategoriesContext;
         }
 
         public ActionResult Index(string category = null)
         {
-            List<Product> products;
-            List<ProductCategory> productCategories = this.productCategories.Collection().ToList();
+            var productCategories = ProductCategories.Collection().ToList();
 
-            products = category == null ? context.Collection().ToList() : context.Collection().Where(p => p.Category == category).ToList();
+            var products = category == null ? Context.Collection().ToList() : Context.Collection().Where(p => p.Category == category).ToList();
 
             var viewModel = new ProductListViewModel
             {
@@ -38,7 +37,7 @@ namespace MyShop.WebUI.Controllers
 
         public ActionResult Details(string id)
         {
-            Product product = context.Find(id);
+            var product = Context.Find(id);
             if (product == null)
                 return HttpNotFound();
             return View(product);

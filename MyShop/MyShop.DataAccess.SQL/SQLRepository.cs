@@ -17,7 +17,7 @@ namespace MyShop.DataAccess.SQL
         public SQLRepository(DataContext context)
         {
             this.context = context;
-            this.dbSet = context.Set<T>();
+            dbSet = context.Set<T>();
         }
 
         public void Commit()

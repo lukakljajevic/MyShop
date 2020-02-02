@@ -25,8 +25,8 @@ namespace MyShop.Services
 
         private Basket GetBasket(HttpContextBase httpContext, bool createIfNull)
         {
-            HttpCookie cookie = httpContext.Request.Cookies.Get(BasketSessionName);
-            Basket basket = new Basket();
+            var cookie = httpContext.Request.Cookies.Get(BasketSessionName);
+            var basket = new Basket();
             if (cookie != null)
             {
                 string basketId = cookie.Value;
@@ -55,13 +55,15 @@ namespace MyShop.Services
 
         private Basket CreateNewBasket(HttpContextBase httpContext)
         {
-            Basket basket = new Basket();
+            var basket = new Basket();
             BasketContext.Insert(basket);
             BasketContext.Commit();
 
-            HttpCookie cookie = new HttpCookie(BasketSessionName);
-            cookie.Value = basket.Id;
-            cookie.Expires = DateTime.Now.AddDays(1);
+            var cookie = new HttpCookie(BasketSessionName)
+            {
+                Value = basket.Id,
+                Expires = DateTime.Now.AddDays(1)
+            };
             httpContext.Response.Cookies.Add(cookie);
 
             return basket;
@@ -69,8 +71,8 @@ namespace MyShop.Services
 
         public void AddToBasket(HttpContextBase httpContext, string productId)
         {
-            Basket basket = GetBasket(httpContext, true);
-            BasketItem item = basket.BasketItems.FirstOrDefault(i => i.ProductId == productId);
+            var basket = GetBasket(httpContext, true);
+            var item = basket.BasketItems.FirstOrDefault(i => i.ProductId == productId);
 
             if (item == null)
             {
@@ -85,7 +87,7 @@ namespace MyShop.Services
             }
             else
             {
-                item.Quantity = item.Quantity + 1;
+                item.Quantity += 1;
             }
 
             BasketContext.Commit();
@@ -105,7 +107,7 @@ namespace MyShop.Services
 
         public List<BasketItemViewModel> GetBasketItems(HttpContextBase httpContext)
         {
-            Basket basket = GetBasket(httpContext, false);
+            var basket = GetBasket(httpContext, false);
             if (basket == null) return new List<BasketItemViewModel>();
             var results = (
                 from b in basket.BasketItems
@@ -119,6 +121,7 @@ namespace MyShop.Services
                     Price = p.Price
                 }
             ).ToList();
+
             return results;
 
         }
