@@ -21,10 +21,13 @@ namespace MyShop.WebUI.Tests.Controllers
             // setup
             var baskets = new MockContext<Basket>();
             var products = new MockContext<Product>();
+            var orders = new MockContext<Order>();
             var httpContext = new MockHttpContext();
 
             var basketService = new BasketService(products, baskets);
-            var controller = new BasketController(basketService);
+            var orderService = new OrderService(orders);
+            var controller = new BasketController(basketService, orderService);
+
             controller.ControllerContext = new ControllerContext(httpContext, new RouteData(), controller);
 
             // act
@@ -44,6 +47,7 @@ namespace MyShop.WebUI.Tests.Controllers
         {
             var baskets = new MockContext<Basket>();
             var products = new MockContext<Product>();
+            var orders = new MockContext<Order>();
             var httpContext = new MockHttpContext();
 
             products.Insert(new Product() { Id = "1", Price = 10.00m });
@@ -56,7 +60,8 @@ namespace MyShop.WebUI.Tests.Controllers
             baskets.Insert(basket);
 
             var basketService = new BasketService(products, baskets);
-            var controller = new BasketController(basketService);
+            var orderService = new OrderService(orders);
+            var controller = new BasketController(basketService, orderService);
 
             httpContext.Request.Cookies.Add(new HttpCookie("eCommerceBasket") { Value = basket.Id });
             controller.ControllerContext = new ControllerContext(httpContext, new RouteData(), controller);
@@ -66,6 +71,37 @@ namespace MyShop.WebUI.Tests.Controllers
 
             Assert.AreEqual(3, basketSummary.BasketCount);
             Assert.AreEqual(25.00m, basketSummary.BasketTotal);
+        }
+
+        [TestMethod]
+        public void CanCheckoutAndCreateOrder()
+        {
+            var products = new MockContext<Product>();
+            products.Insert(new Product() { Id = "1", Price = 10.00m });
+            products.Insert(new Product() { Id = "2", Price = 5.00m });
+
+            var baskets = new MockContext<Basket>();
+            var basket = new Basket();
+            basket.BasketItems.Add(new BasketItem() { ProductId = "1", Quantity = 2 });
+            basket.BasketItems.Add(new BasketItem() { ProductId = "2", Quantity = 1 });
+            baskets.Insert(basket);
+
+            var basketService = new BasketService(products, baskets);
+            var orders = new MockContext<Order>();
+            var orderService = new OrderService(orders);
+            var controller = new BasketController(basketService, orderService);
+            var httpContext = new MockHttpContext();
+            httpContext.Request.Cookies.Add(new HttpCookie("eCommerceBasket") { Value = basket.Id });
+            controller.ControllerContext = new ControllerContext(httpContext, new RouteData(), controller);
+
+            var order = new Order();
+            var result = controller.Checkout(order);
+
+            Assert.AreEqual(2, order.OrderItems.Count);
+            Assert.AreEqual(0, basket.BasketItems.Count);
+
+            var orderInRepository = orders.Find(order.Id);
+            Assert.AreEqual(2, orderInRepository.OrderItems.Count);
         }
     }
 }
