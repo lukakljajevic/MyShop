@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.Ajax.Utilities;
 using MyShop.Core.Contracts;
 using MyShop.Core.Models;
 
@@ -12,11 +13,13 @@ namespace MyShop.WebUI.Controllers
     {
         private IBasketService BasketService;
         private IOrderService OrderService { get; set; }
+        private IRepository<Customer> Customers;
 
-        public BasketController(IBasketService basketService, IOrderService orderService)
+        public BasketController(IBasketService basketService, IOrderService orderService, IRepository<Customer> customers)
         {
             BasketService = basketService;
             OrderService = orderService;
+            Customers = customers;
         }
 
         public ActionResult Index()
@@ -43,16 +46,32 @@ namespace MyShop.WebUI.Controllers
             return PartialView(basketSummary);
         }
 
+        [Authorize]
         public ActionResult Checkout()
         {
-            return View();
+            var customer = Customers.Collection().FirstOrDefault(c => c.Email == User.Identity.Name);
+            if (customer == null) return RedirectToAction("Error");
+            var order = new Order
+            {
+                Email = customer.Email,
+                City = customer.City,
+                State = customer.State,
+                Street = customer.Street,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                ZipCode = customer.ZipCode
+            };
+
+            return View(order);
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult Checkout(Order order)
         {
             var basketItems = BasketService.GetBasketItems(HttpContext);
             order.OrderStatus = "Order Created";
+            order.Email = User.Identity.Name;
 
             // process payment
 
